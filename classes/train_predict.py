@@ -11,7 +11,8 @@ class RequestsArray(BaseModel):
     
 class PredictionRequest(BaseModel):
     stepsToPredict:int=5
-    precictionStartDate:str
+    predictionStartDate:str
+    frequency:str
     
 class TrainRequestsModel(BaseModel):
     requests:RequestsArray
