@@ -14,9 +14,10 @@ async def predict(payload: PredictionRequest):
     stepsToPredict=payload.stepsToPredict
     predictionStartDate = payload.predictionStartDate 
     frequency=payload.frequency
+    job_type=payload.job_type
     
     try:
-        with open(f"models/daily.pickle","rb") as f:
+        with open(f"models/{job_type}_{frequency}.pickle""rb") as f:
             model_fit=pickle.load(f)
                  
         # Create future dates for prediction
