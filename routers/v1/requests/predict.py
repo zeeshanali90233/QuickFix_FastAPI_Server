@@ -3,8 +3,7 @@ import pandas as pd
 from datetime import datetime
 from classes.train_predict import PredictionRequest
 import pickle
-from prophet import Prophet
-from utils.math import floor
+from lib.math import floor
 
 router = APIRouter()
 

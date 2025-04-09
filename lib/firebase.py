@@ -1,8 +1,9 @@
 from config.firebase import initialize_firebase
-from config.firebase import db
+from firebase_admin import db
 import pandas as pd
 from prophet import Prophet
 import pickle
+from datetime import datetime
 from datetime import datetime
 
 # Initialize Firebase
@@ -13,8 +14,9 @@ def train_model_daily():
     Fetch data from the 'requests' collection in Firebase Realtime Database,
     group by job_type, and train models for each job type.
     """
+    print("ddd")
     # Reference to the 'requests' collection
-    ref = db.reference('requests')
+    ref = db.reference('request')
     
     # Fetch all data from the 'requests' collection
     all_requests = ref.get()
@@ -26,10 +28,12 @@ def train_model_daily():
     # Group data by job_type
     job_type_data = {}
     for req in all_requests.values():
-        job_type = req.get('job_type')
+        job_type = req.get('requestDetail')
         if job_type not in job_type_data:
             job_type_data[job_type] = []
-        job_type_data[job_type].append({'ds': req.get('date'), 'y': int(req.get('count'))})
+        dt = datetime.strptime(req.get('timeStamp'), "%m/%d/%Y, %I:%M:%S %p")
+        formatted_date = dt.strftime("%Y-%m-%d")
+        job_type_data[job_type].append({'ds': formatted_date, 'y': 1})
     
     # Train models for each job_type
     for job_type, data in job_type_data.items():
