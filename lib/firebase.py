@@ -3,18 +3,49 @@ from firebase_admin import db
 import pandas as pd
 from prophet import Prophet
 import pickle
-from datetime import datetime
-from datetime import datetime
+from datetime import datetime, timedelta
+import math
+import random
+import os
+
 
 # Initialize Firebase
 initialize_firebase()
+
+def get_dummy_data():
+    """
+    Generate dummy data for specific work services
+    """
+    services = [
+        "Heating and Cooling System",
+        "Electrical",
+        "Plumbering",
+        "Drainage",
+        "Any Other Source"
+    ]
+    
+    dummy_data = {}
+    base_date = datetime.now() - timedelta(days=30)
+    
+    for service in services:
+        dummy_data[service] = []
+        for i in range(15):
+            date = base_date + timedelta(days=i*2)  # Spread data over 30 days
+            dummy_data[service].append({
+                'ds': date.strftime("%Y-%m-%d"),
+                'y': int(100 + 50 * (1 + math.sin(i / 2)) + random.randint(-10, 10))
+            })
+    
+    return dummy_data
 
 def train_model_daily():
     """
     Fetch data from the 'requests' collection in Firebase Realtime Database,
     group by job_type, and train models for each job type.
     """
-    print("ddd")
+    # Check Models Directory create if not
+    if not os.path.exists("models"):
+        os.makedirs("models")
     # Reference to the 'requests' collection
     ref = db.reference('request')
     
@@ -26,7 +57,7 @@ def train_model_daily():
         return
     
     # Group data by job_type
-    job_type_data = {}
+    job_type_data = get_dummy_data()
     for req in all_requests.values():
         job_type = req.get('requestDetail')
         if job_type not in job_type_data:
@@ -34,7 +65,7 @@ def train_model_daily():
         dt = datetime.strptime(req.get('timeStamp'), "%m/%d/%Y, %I:%M:%S %p")
         formatted_date = dt.strftime("%Y-%m-%d")
         job_type_data[job_type].append({'ds': formatted_date, 'y': 1})
-    
+    print(job_type_data)
     # Train models for each job_type
     for job_type, data in job_type_data.items():
         try:
