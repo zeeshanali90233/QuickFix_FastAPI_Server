@@ -1,56 +1,37 @@
-ARG PYTHON_VERSION=3.12.3
-FROM python:3.12-slim as base
+# ---------- Stage 1: Builder ----------
+FROM python:3.11-slim AS builder
 
-# Environment settings
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+# Set environment variables to avoid prompts and speed up installs
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_DEFAULT_TIMEOUT=100
 
-# Create working directory
 WORKDIR /app
 
-# Install required build dependencies
-RUN apk add --no-cache \
-    bash \
-    build-base \
-    libffi-dev \
-    openssl-dev \
-    python3-dev \
-    musl-dev \
-    freetype-dev \
-    libpng-dev \
-    openblas-dev \
-    jpeg-dev \
-    zlib-dev \
-    cargo \
-    git \
-    curl
+# System dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential gcc git curl && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Create a non-root user
-ARG UID=10001
-RUN adduser \
-    --disabled-password \
-    --gecos "" \
-    --home "/nonexistent" \
-    --shell "/sbin/nologin" \
-    --no-create-home \
-    --uid "${UID}" \
-    appuser
-
-# Copy requirements first and install them
+# Install Python dependencies in layers
 COPY requirements.txt .
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
 
-# Upgrade pip and install Python packages
-RUN pip install --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+# ---------- Stage 2: Runtime ----------
+FROM python:3.11-slim AS runtime
 
-# Switch to non-root user
-USER appuser
+WORKDIR /app
 
-# Copy the rest of the project
+# Copy installed packages from builder
+COPY --from=builder /usr/local/lib/python3.11 /usr/local/lib/python3.11
+COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder /usr/local/include /usr/local/include
+
+# Copy your source code
 COPY . .
 
-# Expose app port
-EXPOSE 8000
-
-# Start the application
+# Run FastAPI server
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
