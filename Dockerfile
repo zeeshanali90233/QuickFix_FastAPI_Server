@@ -1,5 +1,5 @@
 ARG PYTHON_VERSION=3.12.3
-FROM python:3.12-slim as base
+FROM python:${PYTHON_VERSION}-alpine as base
 
 # Environment settings
 ENV PYTHONDONTWRITEBYTECODE=1
