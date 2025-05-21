@@ -1,5 +1,5 @@
 ARG PYTHON_VERSION=3.12.3
-FROM python:${PYTHON_VERSION}-alpine as base
+FROM python:3.12-slim as base
 
 # Environment settings
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -11,6 +11,9 @@ WORKDIR /app
 # Install required build dependencies for packages like cryptography, numpy, pandas, etc.
 RUN apk add --no-cache \
     build-base \
+    bash \
+    build-essential \
+    make \
     libffi-dev \
     openssl-dev \
     python3-dev \
@@ -24,7 +27,9 @@ RUN apk add --no-cache \
     jpeg-dev \
     zlib-dev \
     cargo \
-    git
+    git \
+    python3-dev \
+    curl \
 
 # Create a non-root user
 ARG UID=10001
