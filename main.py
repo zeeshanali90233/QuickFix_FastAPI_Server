@@ -7,14 +7,16 @@ from apscheduler.triggers.cron import CronTrigger
 from lib.firebase import train_model_daily,train_model_monthly
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
 
 scheduler = AsyncIOScheduler(timezone=utc)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     scheduler.start()
+    train_model_daily()
     yield
     scheduler.shutdown()
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -26,7 +28,6 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    train_model_daily()
     return {"message": "Welcome to Quickfix Machine Learning Server"}
 
 

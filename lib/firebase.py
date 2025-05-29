@@ -65,7 +65,7 @@ def train_model_daily():
         dt = datetime.strptime(req.get('timeStamp'), "%m/%d/%Y, %I:%M:%S %p")
         formatted_date = dt.strftime("%Y-%m-%d")
         job_type_data[job_type].append({'ds': formatted_date, 'y': 1})
-    print(job_type_data)
+
     # Train models for each job_type
     for job_type, data in job_type_data.items():
         try:
