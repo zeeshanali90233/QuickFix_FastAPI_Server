@@ -5,6 +5,7 @@ from pytz import utc
 from contextlib import asynccontextmanager
 from apscheduler.triggers.cron import CronTrigger
 from lib.firebase import train_model_daily,train_model_monthly
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
@@ -14,6 +15,14 @@ async def lifespan(app: FastAPI):
     scheduler.start()
     yield
     scheduler.shutdown()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # for all add *
+    allow_credentials=True,
+    allow_methods=["GET", "POST","DELETE"],  # Specify allowed methods
+    allow_headers=["*"],  # Specify allowed headers (e.g., "Content-Type")
+)
 
 @app.get("/")
 async def root():
