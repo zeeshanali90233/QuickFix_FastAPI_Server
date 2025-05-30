@@ -24,13 +24,12 @@ async def predict(payload: PredictionRequest):
         future['cap']=10000
         future['floor']=0
         
-        print(future)
         # Forecast the future values
         forecast = model_fit.predict(future)  # Changed from forecast.predict(forecast) to model_fit.predict(future)
             
         # Get the forecast values for the specified periods
         forecast_values = forecast['yhat'].tail(stepsToPredict).values
-        forecast_values=map(floor,forecast_values)
+        forecast_values=map(round,forecast_values)
         current_datetime = datetime.strptime(predictionStartDate, "%Y-%m-%d")
         forecast_dates = pd.date_range(start=current_datetime, periods=stepsToPredict, freq='D').to_list()
 

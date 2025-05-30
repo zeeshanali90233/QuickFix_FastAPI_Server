@@ -28,6 +28,7 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
+    await train_model_daily()
     return {"message": "Welcome to Quickfix Machine Learning Server"}
 
 
