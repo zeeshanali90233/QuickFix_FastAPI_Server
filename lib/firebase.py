@@ -43,6 +43,7 @@ def train_model_daily():
     Fetch data from the 'requests' collection in Firebase Realtime Database,
     group by job_type, and train models for each job type.
     """
+    print("Training daily models...")
     # Check Models Directory create if not
     if not os.path.exists("models"):
         os.makedirs("models")
@@ -57,16 +58,21 @@ def train_model_daily():
         return
     
     # Group data by job_type
-    job_type_data = get_dummy_data()
+    # job_type_data = get_dummy_data()
+    job_type_data = {}
     
     # Real Data 
-    # for req in all_requests.values():
-    #     job_type = req.get('requestDetail')
-    #     if job_type not in job_type_data:
-    #         job_type_data[job_type] = []
-    #     dt = datetime.strptime(req.get('timeStamp'), "%m/%d/%Y, %I:%M:%S %p")
-    #     formatted_date = dt.strftime("%Y-%m-%d")
-    #     job_type_data[job_type].append({'ds': formatted_date, 'y': 1})
+    for req in all_requests.values():
+        job_type = req.get('requestDetail')
+        if job_type not in job_type_data:
+            job_type_data[job_type] = []
+        ts = req.get('timeStamp')
+        try:
+            dt = datetime.strptime(ts, "%m/%d/%Y, %I:%M:%S %p")
+        except ValueError:
+            dt = datetime.strptime(ts, "%d/%m/%Y, %H:%M:%S")
+        formatted_date = dt.strftime("%Y-%m-%d")
+        job_type_data[job_type].append({'ds': formatted_date, 'y': 1})
 
     # Train models for each job_type
     for job_type, data in job_type_data.items():
