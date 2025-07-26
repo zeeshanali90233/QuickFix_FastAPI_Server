@@ -14,27 +14,64 @@ initialize_firebase()
 
 def get_dummy_data():
     """
-    Generate dummy data for specific work services
+    Generate realistic dummy data for specific work services
     """
     services = [
         "Heating and Cooling System",
         "Electrical",
-        "Plumbering",
+        "Plumbing",
         "Drainage",
         "Any Other Source"
     ]
     
     dummy_data = {}
-    base_date = datetime.now() - timedelta(days=30)
+    base_date = datetime.now() - timedelta(days=90)  # 3 months of data
     
     for service in services:
         dummy_data[service] = []
-        for i in range(15):
-            date = base_date + timedelta(days=i*2)  # Spread data over 30 days
-            dummy_data[service].append({
-                'ds': date.strftime("%Y-%m-%d"),
-                'y': int(100 + 50 * (1 + math.sin(i / 2)) + random.randint(-10, 10))
-            })
+        
+        # Generate data for each day
+        for day in range(90):
+            current_date = base_date + timedelta(days=day)
+            
+            # Base requests per day (2-3 average)
+            base_requests = 2.5
+            
+            # Add weekly seasonality (more requests on weekdays)
+            weekday_factor = 1.3 if current_date.weekday() < 5 else 0.7
+            
+            # Add seasonal variation (some services more popular in certain months)
+            month = current_date.month
+            if service == "Heating and Cooling System":
+                # More requests in summer (AC) and winter (heating)
+                seasonal_factor = 1.5 if month in [6, 7, 8, 12, 1, 2] else 0.8
+            elif service == "Electrical":
+                # Slightly higher in winter (lighting issues)
+                seasonal_factor = 1.2 if month in [11, 12, 1, 2] else 0.9
+            elif service == "Plumbing":
+                # More in winter (frozen pipes) and spring (maintenance)
+                seasonal_factor = 1.3 if month in [12, 1, 2, 3, 4] else 0.8
+            elif service == "Drainage":
+                # More during rainy seasons
+                seasonal_factor = 1.4 if month in [3, 4, 5, 9, 10] else 0.7
+            else:
+                seasonal_factor = 1.0
+            
+            # Calculate daily requests with some randomness
+            daily_requests = max(0, int(
+                base_requests * weekday_factor * seasonal_factor + 
+                random.gauss(0, 0.8)  # Add normal distribution noise
+            ))
+            
+            # Ensure at least some variation (0-6 requests per day)
+            daily_requests = max(0, min(6, daily_requests))
+            
+            # Add the data point for this day
+            if daily_requests > 0:
+                dummy_data[service].append({
+                    'ds': current_date.strftime("%Y-%m-%d"),
+                    'y': daily_requests
+                })
     
     return dummy_data
 
@@ -58,21 +95,21 @@ def train_model_daily():
         return
     
     # Group data by job_type
-    # job_type_data = get_dummy_data()
-    job_type_data = {}
+    job_type_data = get_dummy_data()
+    # job_type_data = {}
     
     # Real Data 
-    for req in all_requests.values():
-        job_type = req.get('requestDetail')
-        if job_type not in job_type_data:
-            job_type_data[job_type] = []
-        ts = req.get('timeStamp')
-        try:
-            dt = datetime.strptime(ts, "%m/%d/%Y, %I:%M:%S %p")
-        except ValueError:
-            dt = datetime.strptime(ts, "%d/%m/%Y, %H:%M:%S")
-        formatted_date = dt.strftime("%Y-%m-%d")
-        job_type_data[job_type].append({'ds': formatted_date, 'y': 1})
+    # for req in all_requests.values():
+    #     job_type = req.get('requestDetail')
+    #     if job_type not in job_type_data:
+    #         job_type_data[job_type] = []
+    #     ts = req.get('timeStamp')
+    #     try:
+    #         dt = datetime.strptime(ts, "%m/%d/%Y, %I:%M:%S %p")
+    #     except ValueError:
+    #         dt = datetime.strptime(ts, "%d/%m/%Y, %H:%M:%S")
+    #     formatted_date = dt.strftime("%Y-%m-%d")
+    #     job_type_data[job_type].append({'ds': formatted_date, 'y': 1})
 
     # Train models for each job_type
     for job_type, data in job_type_data.items():

@@ -55,6 +55,7 @@ async def predict(payload: PredictionRequest):
                 
         return {"message": "Forecast generated successfully", "forecast": forecast_data}
     except Exception as e:
+        
         return {"message": f"An Error Occurred: {str(e)}", "forecast": []}
   
   

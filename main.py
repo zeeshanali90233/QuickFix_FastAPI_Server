@@ -39,5 +39,5 @@ scheduler.add_job(train_model_daily,trigger)
 # Monthly
 trigger= CronTrigger(month="jan-dec", day=2,hour=2,minute=10)
 scheduler.add_job(train_model_monthly,trigger)
-        
+            
         
