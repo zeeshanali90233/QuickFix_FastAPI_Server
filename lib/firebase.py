@@ -19,7 +19,7 @@ def get_dummy_data():
     services = [
         "Heating and Cooling System",
         "Electrical",
-        "Plumbing",
+        "Plumbering",
         "Drainage",
         "Any Other Source"
     ]
